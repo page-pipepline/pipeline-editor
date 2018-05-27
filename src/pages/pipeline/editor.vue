@@ -318,7 +318,7 @@ export default {
   async mounted() {
     setTimeout(() => {
       this.tipDialogVisible = false;
-    }, 5000);
+    }, 8000);
 
     this.templateId = this.$route.params.id;
     this.purpose = this.$route.query.purpose;
