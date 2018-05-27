@@ -493,10 +493,8 @@ export default {
   &__iframe {
     margin: 0px 0 0;
     border: 1px solid black;
-    // width: 375px;
-    // height: 667px;
-    width: 200px;
-    height: 400px;
+    width: 375px;
+    height: 667px;
   }
 }
 
