@@ -9,7 +9,7 @@ export default new Router({
     {
       path: '/',
       name: 'Pipeline',
-      component: HelloWorld,
+      component: Pipeline,
     },
     {
       path: '/pipeline',
