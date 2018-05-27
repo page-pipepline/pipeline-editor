@@ -107,6 +107,13 @@
       </el-tabs>
     </div>
   </div>
+  <el-dialog
+    title="Wellcom to Pipeline !"
+    :visible.sync="tipDialogVisible"
+    width="35%">
+    <h3>服务器性能差, 请耐心等待接口返回.</h3>
+    如果页面无法预览, 请点击<a :href="previewSrc">这里</a>允许浏览器访问自签名证书的服务器.
+  </el-dialog>
 </div>
 </template>
 
@@ -142,6 +149,7 @@ export default {
       previewSrc: '',
       formName: 'pageBaseConfig',
       pageBaseUrl: '',
+      tipDialogVisible: true,
     };
   },
   methods: {
@@ -308,6 +316,10 @@ export default {
     },
   },
   async mounted() {
+    setTimeout(() => {
+      this.tipDialogVisible = false;
+    }, 5000);
+
     this.templateId = this.$route.params.id;
     this.purpose = this.$route.query.purpose;
 

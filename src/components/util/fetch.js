@@ -1,9 +1,11 @@
+import Vue from 'vue';
+import { Loading } from 'element-ui';
 import stringify from 'qs/lib/stringify';
 
 export default (api, options = {}) => {
   let url = api;
   // 跨域
-  options.credentials = 'include';
+  // options.credentials = 'include';
   // 处理hearder
   options.headers = options.headers || {};
   if (!options.headers['Content-Type']) {
@@ -31,8 +33,16 @@ export default (api, options = {}) => {
     options.body = undefined;
   }
 
+  let loadingInstance = Loading.service({
+    fullscreen: false,
+    text: '网络请求中, 请稍后',
+    background: 'rgba(0, 0, 0, 0.2)',
+  });
   return fetch(url, options)
     .then((response) => {
+      Vue.nextTick(() => {
+        loadingInstance.close();
+      });
       if (response.status === 200) {
         return response.json()
           .then((json) => {
@@ -45,6 +55,13 @@ export default (api, options = {}) => {
             });
           });
       }
+      return Promise.reject({
+        status: response.status,
+      });
+    }, (error) => {
+      Vue.nextTick(() => {
+        loadingInstance.close();
+      });
       return Promise.reject({
         status: response.status,
       });
