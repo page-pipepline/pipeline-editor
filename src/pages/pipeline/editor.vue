@@ -1,79 +1,117 @@
 <template>
-<div>
-  <div class="page-content pipline">
-    <div class="pipline__components-selector">
-      <h3>模板区块</h3>
-      <div class="components-selector__list">
-        <div class="components-selector__item"
-          v-for="component in templateComponents"
-          :key="component.id">
-          <el-button
-            :type="getComponentSelectorButtonType(component)"
-            size="small"
-            icon="el-icon-menu"
-            @click.native="selectComponent(component)">
-            {{component.title}}
+<div class="page-content pipline">
+  <div class="pipline__library-components">
+    <h3>组件库</h3>
+    <ul id="library-components__list"
+      ref="library-components__list"
+      class="library-components__list">
+      <li class="library-components__item"
+        v-for="(component, key) in libraryComponentsInfo"
+        :data-component-name="key"
+        :key="key">
+        <el-button
+          size="small"
+          @dblclick.native="onLibraryComponentDblclick(key)"
+          icon="el-icon-star-on">
+          {{component.pipeline.title}}
+        </el-button>
+      </li>
+    </ul>
+    <p>(拖拽或双击)</p>
+  </div>
+  <div class="pipline__components-selector">
+    <h3>模板组件</h3>
+    <ul id="components-selector__list"
+      ref="components-selector__list"
+      class="components-selector__list">
+      <li class="components-selector__item"
+        v-for="(component, index) in templateComponents"
+        :key="component.id">
+        <el-button
+          :type="getComponentSelectorButtonType(component)"
+          size="small"
+          icon="el-icon-menu"
+          @click.native="selectComponent(component)">
+          {{Object.keys(libraryComponentsInfo).length && libraryComponentsInfo[component.name].pipeline.title}}
+        </el-button>
+        <div
+          class="components-selector__button-group"
+          v-show="currentComponent && currentComponent.id === component.id">
+          <el-button size="mini" type="success"
+            :disabled="index === 0"
+            @click="componentUp(component, index)">
+            <i class="el-icon-sort-up"></i>
+          </el-button>
+          <el-button size="mini" type="success"
+            :disabled="index === (templateComponents.length - 1)"
+            @click="componentDown(component, index)">
+            <i class="el-icon-sort-down"></i>
+          </el-button>
+          <el-button size="mini" type="danger"
+            @click="componentDelete(component, index)">
+            <i class="el-icon-delete"></i>
           </el-button>
         </div>
-      </div>
+      </li>
+    </ul>
+  </div>
+  <div class="pipline__preview">
+    <h3>页面预览</h3>
+    <div class="preview__button-group">
+      <el-button
+        size="small"
+        icon="el-icon-refresh"
+        @click.native="refreshPreviewIframe">
+        刷新
+      </el-button>
+      <el-button
+        size="small"
+        icon="el-icon-news"
+        @click.native="previewInNewPage">
+        新页面预览
+      </el-button>
     </div>
-    <div class="pipline__preview">
-      <h3>页面预览</h3>
-      <div class="preview__button-group">
-        <el-button
-          size="small"
-          icon="el-icon-refresh"
-          @click.native="refreshPreviewIframe">
-          刷新
-        </el-button>
-        <el-button
-          size="small"
-          icon="el-icon-news"
-          @click.native="previewInNewPage">
-          新页面预览
-        </el-button>
-      </div>
-      <div class="preview__page-title">
-        {{baseConfig.title}}
-      </div>
-      <iframe
-        class="preview__iframe"
-        ref="previewIframe"
-        :src="previewSrc"/>
+    <div class="preview__page-title">
+      {{baseConfig.title}}
     </div>
-    <div class="pipline__fill-info">
-      <h3>页面配置</h3>
-      <div class="fill-info__form">
-        <el-tabs
-          type="border-card"
-          @tab-click="onTabClick"
-          :value="formName">
-          <el-tab-pane
-            name="pageBaseConfig"
-            label="页面基本配置">
-            <div class="form-json-editor">
-              <json-editor
-                :data.sync="baseConfig"
-                :dataSchema.sync="baseConfigSchema"/>
-            </div>
-          </el-tab-pane>
-          <el-tab-pane
-            name="pageConfig"
-            label="页面内容配置">
-            <div class="form-json-editor">
-              <json-editor
-                :data.sync="data"
-                :dataSchema.sync="dataSchema"/>
-            </div>
-          </el-tab-pane>
-        </el-tabs>
-      </div>
+    <iframe
+      class="preview__iframe"
+      ref="previewIframe"
+      :src="previewSrc"/>
+  </div>
+  <div class="pipline__fill-info">
+    <h3>页面配置</h3>
+    <div class="fill-info__form">
+      <el-tabs
+        type="border-card"
+        @tab-click="onTabClick"
+        :value="formName">
+        <el-tab-pane
+          name="pageBaseConfig"
+          label="页面基本配置">
+          <div class="form-json-editor">
+            <json-editor
+              :data.sync="baseConfig"
+              :dataSchema.sync="baseConfigSchema"/>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane
+          name="pageConfig"
+          label="页面内容配置">
+          <div class="form-json-editor">
+            <json-editor
+              :data.sync="data"
+              :dataSchema.sync="dataSchema"/>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
     </div>
   </div>
 </div>
 </template>
 
 <script>
+import Sortable from 'sortablejs';
 import { APIS } from 'comp/util/constants';
 import fetch from 'comp/util/fetch';
 import JsonEditor from 'comp/json-editor';
@@ -98,6 +136,8 @@ export default {
       baseConfigSchema: {},
       baseConfigSchemaEarly: {},
       templateComponents: [],
+      libraryComponentsInfo: {},
+      componentsDefaultData: {},
       currentComponent: null,
       previewSrc: '',
       formName: 'pageBaseConfig',
@@ -137,7 +177,7 @@ export default {
         },
       });
 
-      this.refreshPreviewIframe();
+      await this.refreshPreviewIframe();
       await this.getBaseConfig();
     },
     async getBaseConfigSchema() {
@@ -156,6 +196,22 @@ export default {
       });
       this.templateComponents = ret;
     },
+    async getLibraryComponentsInfo() {
+      const ret = await fetch(`${APIS.PIPLINE}/libraryComponentsInfo`, {
+        body: {
+          pageId: this.pageId,
+        },
+      });
+      this.libraryComponentsInfo = ret;
+    },
+    async getComponentsDefaultData() {
+      const ret = await fetch(`${APIS.PIPLINE}/componentsDefaultData`, {
+        body: {
+          pageId: this.pageId,
+        },
+      });
+      this.componentsDefaultData = ret;
+    },
     async putComponents() {
       const ret = await fetch(`${APIS.PIPLINE}/templateComponents`, {
         method: 'PUT',
@@ -165,7 +221,7 @@ export default {
         },
       });
 
-      this.refreshPreviewIframe();
+      await this.refreshPreviewIframe();
       await this.getTemplateComponents();
     },
     async getComponentsSchema() {
@@ -188,9 +244,16 @@ export default {
       }
       return false;
     },
-    refreshPreviewIframe() {
-      this.$refs.previewIframe.onload = this.iframeScrollToCurrentComponent;
+    async refreshPreviewIframe() {
+      const onLoadPromise = new Promise((resolve, reject) => {
+        this.$refs.previewIframe.onload = () => {
+          this.iframeScrollToCurrentComponent();
+          resolve();
+        };
+      });
+
       this.$refs.previewIframe.src = this.previewSrc;
+      await onLoadPromise;
     },
     iframeScrollToCurrentComponent() {
       this.$refs.previewIframe.contentWindow.postMessage({
@@ -210,11 +273,38 @@ export default {
       };
       this.formName = tab.name;
     },
+    onLibraryComponentDblclick(componentName) {
+      console.log('dbl');
+      // 双击组件库组件， 将该组件插入到模板组件列表中
+      const templateComponentsLength = this.templateComponents.length;
+      this.templateComponents.splice(templateComponentsLength, 0, {
+        id: `${componentName}-${+new Date()}`,
+        name: componentName,
+        data: this.componentsDefaultData[componentName],
+      })
+      this.currentComponent = this.templateComponents[templateComponentsLength];
+      this.putComponents();
+    },
     tabToPageConfig() {
       this.formName = 'pageConfig';
     },
     getComponentSelectorButtonType(component) {
       return (this.currentComponent && this.currentComponent.id === component.id) ? 'primary' : 'normal';
+    },
+    async componentDown(component, index) {
+      this.$set(this.templateComponents, index, this.templateComponents[index + 1]);
+      this.$set(this.templateComponents, index + 1, component);
+      await this.putComponents();
+    },
+    async componentUp(component, index) {
+      this.$set(this.templateComponents, index, this.templateComponents[index - 1]);
+      this.$set(this.templateComponents, index - 1, component);
+      await this.putComponents();
+    },
+    async componentDelete(component, index) {
+      this.templateComponents.splice(index, 1);
+      this.currentComponent = null;
+      await this.putComponents();
     },
   },
   async mounted() {
@@ -223,11 +313,48 @@ export default {
 
     await this.prepareFromTemplate();
     await this.getBaseConfigSchema();
+    await this.getLibraryComponentsInfo();
     await this.getBaseConfig();
     // 用 baseConfigSchemaEarly 解决数据和约束不在一个 Vue 渲染周期内导致的校验报错
     this.baseConfigSchema = this.baseConfigSchemaEarly;
     await this.getComponentsSchema();
     await this.getTemplateComponents();
+    await this.getComponentsDefaultData();
+   
+   // 组件拖拽实现
+    this.$nextTick(() => {
+      Sortable.create(this.$refs['library-components__list'], {
+        group: {
+          name: 'library-components__list',
+          pull: 'clone',
+        },
+        sort: false,
+      });
+      Sortable.create(this.$refs['components-selector__list'], {
+        group: {
+          name: 'components-selector__list',
+          put: 'library-components__list'
+        },
+        sort: false,
+        onAdd: (evt) => {
+          // 还原 sortablejs 的 DOM 操作, 转而直接操作 viewModel 数据
+          const insertComponentName = evt.item.getAttribute('data-component-name');
+          const insertComponentIndex = evt.newIndex;
+          const clonedElement = evt.from.children[evt.oldIndex];
+
+          evt.from.insertBefore(evt.item, clonedElement);
+          evt.from.removeChild(clonedElement);
+
+          this.templateComponents.splice(insertComponentIndex, 0, {
+            id: `${insertComponentName}-${+new Date()}`,
+            name: insertComponentName,
+            data: this.componentsDefaultData[insertComponentName],
+          });
+          this.currentComponent = this.templateComponents[insertComponentIndex];
+          this.putComponents();
+        },
+      });
+    });
   },
   watch: {
     templateComponents(value, oldValue) {
@@ -242,13 +369,20 @@ export default {
         }
       }
     },
-    currentComponent() {
-      this.dataSchema = this.schemas[this.currentComponent.name];
-      this.data = this.currentComponent.data;
+    currentComponent(value) {
+      if (value === null) {
+        this.dataSchema = {};
+        this.data = {};
+        return;
+      }
+
+      this.dataSchema = this.schemas[value.name];
+      this.data = value.data;
+
       this.iframeScrollToCurrentComponent();
     },
     data(value, oldValue) {
-      if (this.currentComponent.data === this.data) {
+      if (!this.currentComponent || this.currentComponent.data === this.data) {
         return;
       }
       this.currentComponent.data = this.data;
@@ -265,17 +399,29 @@ export default {
   }
 };
 </script>
+
 <style lang="less" scoped>
+.page-content {
+  height: 100%;
+}
+
 .pipline {
   display: flex;
   flex-direction: row;
-  height: 100%;
+
+  &__library-components {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 10%;
+    border-right: 1px solid #00000020;
+  }
 
   &__components-selector {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 15%;
+    width: 14%;
     border-right: 1px solid #00000020;
   }
 
@@ -283,7 +429,7 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 30%;
+    width: 26%;
     border-right: 1px solid #00000020;
   }
 
@@ -291,9 +437,24 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 55%;
+    width: 50%;
     padding: 0 10px;
     overflow: auto;
+  }
+}
+
+.library-components {
+  &__list {
+    display: flex;
+    flex-direction: column;
+    margin: 10px 0 0;
+    list-style: none;
+    padding-left: 0;
+    overflow-y: auto;
+  }
+
+  &__item {
+    margin: 5px 0 0;
   }
 }
 
@@ -302,10 +463,23 @@ export default {
     display: flex;
     flex-direction: column;
     margin: 10px 0 0;
+    list-style: none;
+    padding-left: 0;
+    overflow-y: auto;
   }
 
   &__item {
     margin: 5px 0 0;
+  }
+
+  &__button-group {
+    display: inline-block;
+
+    .el-button {
+      margin-left: 0;
+      padding-left: 5px;
+      padding-right: 5px;
+    }
   }
 }
 
@@ -319,8 +493,10 @@ export default {
   &__iframe {
     margin: 0px 0 0;
     border: 1px solid black;
-    width: 375px;
-    height: 667px;
+    // width: 375px;
+    // height: 667px;
+    width: 200px;
+    height: 400px;
   }
 }
 
