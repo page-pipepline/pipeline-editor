@@ -274,7 +274,6 @@ export default {
       this.formName = tab.name;
     },
     onLibraryComponentDblclick(componentName) {
-      console.log('dbl');
       // 双击组件库组件， 将该组件插入到模板组件列表中
       const templateComponentsLength = this.templateComponents.length;
       this.templateComponents.splice(templateComponentsLength, 0, {
@@ -302,9 +301,17 @@ export default {
       await this.putComponents();
     },
     async componentDelete(component, index) {
-      this.templateComponents.splice(index, 1);
-      this.currentComponent = null;
-      await this.putComponents();
+      this.$confirm('', '是否删除该组件?', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        center: true
+      }).then(async() => {
+        this.templateComponents.splice(index, 1);
+        this.currentComponent = null;
+        await this.putComponents();
+      }).catch(() => {
+      });
     },
   },
   async mounted() {
