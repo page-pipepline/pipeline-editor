@@ -169,7 +169,7 @@ export default {
       this.baseConfig = ret;
     },
     async putBaseConfig() {
-      const ret = await fetch(`${APIS.PIPLINE}/baseConfig`, {
+      await fetch(`${APIS.PIPLINE}/baseConfig`, {
         method: 'PUT',
         body: {
           pageId: this.pageId,
@@ -213,7 +213,7 @@ export default {
       this.componentsDefaultData = ret;
     },
     async putComponents() {
-      const ret = await fetch(`${APIS.PIPLINE}/templateComponents`, {
+      await fetch(`${APIS.PIPLINE}/templateComponents`, {
         method: 'PUT',
         body: {
           pageId: this.pageId,
@@ -245,7 +245,7 @@ export default {
       return false;
     },
     async refreshPreviewIframe() {
-      const onLoadPromise = new Promise((resolve, reject) => {
+      const onLoadPromise = new Promise((resolve) => {
         this.$refs.previewIframe.onload = () => {
           this.iframeScrollToCurrentComponent();
           resolve();
@@ -264,13 +264,13 @@ export default {
       window.open(this.previewSrc);
     },
     onTabClick(tab) {
-      switch(tab.name) {
+      switch (tab.name) {
         case 'pageConfig':
           this.selectDefaultComponent();
           break;
         default:
           break;
-      };
+      }
       this.formName = tab.name;
     },
     onLibraryComponentDblclick(componentName) {
@@ -280,7 +280,7 @@ export default {
         id: `${componentName}-${+new Date()}`,
         name: componentName,
         data: this.componentsDefaultData[componentName],
-      })
+      });
       this.currentComponent = this.templateComponents[templateComponentsLength];
       this.putComponents();
     },
@@ -304,9 +304,8 @@ export default {
       this.$confirm('', '是否删除该组件?', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning',
-        center: true
-      }).then(async() => {
+        center: true,
+      }).then(async () => {
         this.templateComponents.splice(index, 1);
         this.currentComponent = null;
         await this.putComponents();
@@ -327,8 +326,8 @@ export default {
     await this.getComponentsSchema();
     await this.getTemplateComponents();
     await this.getComponentsDefaultData();
-   
-   // 组件拖拽实现
+
+    // 组件拖拽实现
     this.$nextTick(() => {
       Sortable.create(this.$refs['library-components__list'], {
         group: {
@@ -340,7 +339,7 @@ export default {
       Sortable.create(this.$refs['components-selector__list'], {
         group: {
           name: 'components-selector__list',
-          put: 'library-components__list'
+          put: 'library-components__list',
         },
         sort: false,
         onAdd: (evt) => {
@@ -364,11 +363,11 @@ export default {
     });
   },
   watch: {
-    templateComponents(value, oldValue) {
+    templateComponents(value) {
       if (!this.currentComponent) {
         this.selectDefaultComponent();
       } else {
-        const componentsWithId = value.filter((item) => item.id === this.currentComponent.id);
+        const componentsWithId = value.filter(item => item.id === this.currentComponent.id);
         if (componentsWithId.length > 0) {
           this.currentComponent = componentsWithId[0];
         } else {
@@ -388,11 +387,11 @@ export default {
 
       this.iframeScrollToCurrentComponent();
     },
-    data(value, oldValue) {
-      if (!this.currentComponent || this.currentComponent.data === this.data) {
+    data(value) {
+      if (!this.currentComponent || this.currentComponent.data === value) {
         return;
       }
-      this.currentComponent.data = this.data;
+      this.currentComponent.data = value;
       this.putComponents();
     },
     baseConfig(value, oldValue) {
@@ -403,7 +402,7 @@ export default {
       this.baseConfig = value;
       this.putBaseConfig();
     },
-  }
+  },
 };
 </script>
 
@@ -532,7 +531,7 @@ export default {
   &__upload-thumbnail {
     margin: 0 0 0 10px;
   }
-  
+
   /* 模仿 bootstrap 中的按钮样式 */
   &__upload-button {
     font-size: 14px;

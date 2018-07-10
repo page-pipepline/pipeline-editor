@@ -124,7 +124,7 @@ export default {
     this.jsonEditorDefaultString = JSON.stringify(this.JsonEditor.getValue());
     this.JsonEditor && this.JsonEditor.on('change', this.jsonEditorChangeHandler);
 
-    //for resize detection
+    // for resize detection
     this.editorHeight = this.$refs.editor.clientHeight;
   },
   methods: {
@@ -139,10 +139,10 @@ export default {
       return editor;
     },
     initJsonEditor(schema, ele) {
-      if(!this.schemaValidate(schema)) {
+      if (!this.schemaValidate(schema)) {
         this.$message.error(this.errorMessage);
         return null;
-      };
+      }
 
       ele.innerHTML = '';
       const editor = new JSONEditor(ele, {
@@ -161,7 +161,7 @@ export default {
       const newData = this.JsonEditor.getValue();
       if (!this.dataValidate(newData)) {
         return;
-      };
+      }
       // ${newData} pass validation
       // ${primeData} validated change will always change this.JsonEditor value
       // so if ${primeData} pass validation, ${newData} is a patch change from ${primeData}, can directly set to ${primeData}
@@ -202,7 +202,7 @@ export default {
       return false;
     },
     setMonacoEditorValue(value) {
-      if (!this.MonacoEditor) return;
+      if (!this.MonacoEditor) return false;
 
       const position = this.MonacoEditor.getPosition && this.MonacoEditor.getPosition();
 
@@ -224,16 +224,15 @@ export default {
       if (error && error.length) {
         this.errorMessage = error.map(item => `${item.path} ==> ${item.message}`).join('<br/>');
         return false;
-      } else {
-        return true;
       }
+      return true;
     },
     schemaValidate(schema) {
       try {
         new JSONEditor(document.createElement('div'), { schema });
         this.errorMessage = '';
         return true;
-      } catch(e) {
+      } catch (e) {
         this.errorMessage = e.toString();
         return false;
       }
@@ -241,7 +240,7 @@ export default {
     comfirmObject() {
       try {
         this.primeData = JSON5.parse(this.dataString);
-      } catch(e) {
+      } catch (e) {
         this.$message.error(e.toString());
         return;
       }
@@ -330,7 +329,7 @@ export default {
           break;
         default:
           break;
-      };
+      }
     },
     getUploadImg(img) {
       this.setJsonEditorValueByPath(this.currentEditorPath, img.url);
@@ -351,7 +350,7 @@ export default {
       this.errorMessage = '';
       try {
         this.primeData = JSON5.parse(value);
-      } catch(e) {
+      } catch (e) {
         this.errorMessage = e.toString();
       }
     },
