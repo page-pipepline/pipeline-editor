@@ -7,6 +7,7 @@
     "dev": "node build/dev-server.js",
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue src",
+    "release": "standard-version",
     "build": "node build/build.js"
   },
   "dependencies": {
@@ -57,6 +58,7 @@
     "semver": "^5.3.0",
     "shelljs": "^0.7.6",
     "sortablejs": "^1.7.0",
+    "standard-version": "^4.4.0",
     "uglifyjs-webpack-plugin": "^1.1.1",
     "url-loader": "^0.5.8",
     "vue-loader": "^13.3.0",
