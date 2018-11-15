@@ -10,7 +10,7 @@ const webpackConfig = require('./webpack.dev.conf');
 const HOST = process.env.HOST || config.dev.host
 const PORT = process.env.PORT && Number(process.env.PORT) || config.dev.port
 
-const uri = `http://${HOST}:${PORT}${config.dev.assetsPublicPath}#/pipeline`;
+const uri = `http://${HOST}:${PORT}${config.dev.assetsPublicPath}#/`;
 // default port where dev server listens for incoming traffic
 // automatically open browser, if not set will be false
 const autoOpenBrowser = !!config.dev.autoOpenBrowser;
