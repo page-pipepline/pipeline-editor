@@ -153,6 +153,8 @@ export default {
   },
   methods: {
     async prepareFromTemplate() {
+      // default template id '1'
+      this.templateId = this.$route.query.templateId || '1';
       const ret = await fetch(`${APIS.PIPLINE}/prepareFromTemplate`, {
         method: 'POST',
         body: {
