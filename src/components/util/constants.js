@@ -4,6 +4,7 @@ const APIS = {
   // PIPLINE: `${location.protocol}//172.106.33.34/pipeline-node/pipeline`,
   ROOT: 'http://localhost:7011',
   PIPLINE: 'http://localhost:7011/pipeline',
+  TEMPLATE: 'http://localhost:7011/templates',
 };
 
 export {
