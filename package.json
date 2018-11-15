@@ -1,6 +1,6 @@
 {
   "name": "pipeline-editor",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "页面可视化搭建框架的 web 编辑器",
   "author": "cntchen <cntchen@gmail.com>",
   "scripts": {
