@@ -2,6 +2,7 @@
 > 页面可视化搭建框架的 web 编辑器
 
 ## [Demo][pipeline-demo]
+> https://page-pipepline.github.io/pipeline-editor/dist/#/
 
 ![demo][pipeline-demo]
 
