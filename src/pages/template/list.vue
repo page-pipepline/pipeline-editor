@@ -16,13 +16,17 @@
               @click="useTemplate(item)">使用</div>
           </div>
         </div>
+        <div class="template-item template-item--add">
+            <div class="template-item__button"
+              @click="addTemplate">新增模板</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import Sortable from 'sortablejs';
 import { APIS } from 'comp/util/constants';
 import fetch from 'comp/util/fetch';
 import Topbar from 'comp/topbar';
@@ -47,7 +51,12 @@ export default {
       this.$router.push({
         path: `/pipeline?templateId=${template.id}`,
       });
-    }
+    },
+    addTemplate() {
+      this.$router.push({
+        path: `/template/add`,
+      });
+    },
   },
   async mounted() {
     this.templateList = await this.getTemplates();
@@ -104,6 +113,11 @@ export default {
     border-radius: 3px;
     padding: 1px 8px;
     margin: 0 10px;
+    cursor: pointer;
   }
+}
+
+.template-item--add {
+  justify-content: center;
 }
 </style>

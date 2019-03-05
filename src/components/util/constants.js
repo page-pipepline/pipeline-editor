@@ -5,6 +5,7 @@ const APIS = {
   ROOT: 'http://localhost:7011',
   PIPLINE: 'http://localhost:7011/pipeline',
   TEMPLATE: 'http://localhost:7011/templates',
+  FILE: 'http://localhost:7011/file',
 };
 
 export {
