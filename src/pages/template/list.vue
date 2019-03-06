@@ -4,6 +4,9 @@
       subtitle="pipeline 支持不同前端框架开发的页面模板, 无缝对接业务现有前端技术栈."/>
     <div class="template-container">
       <div class="template-list">
+        <div class="template-item template-item--add">
+          <el-button type="primary" @click="addTemplate">新增模板</el-button>
+        </div>
         <div class="template-item"
           v-for="(item) in templateList"
           :key="item.id">
@@ -12,13 +15,9 @@
           </div>
           <div class="template-item__name">{{item.name}}</div>
           <div class="template-item__button-group">
-            <div class="template-item__button"
-              @click="useTemplate(item)">使用</div>
-          </div>
-        </div>
-        <div class="template-item template-item--add">
-            <div class="template-item__button"
-              @click="addTemplate">新增模板</div>
+              <el-button type="primary" size="small" plain @click="useTemplate(item)">使用</el-button>
+              <el-button type="warning" size="small" plain @click="editTemplate(item)">修改</el-button>
+              <el-button type="danger" size="small" plain @click="deleteTemplate(item)">删除</el-button>
           </div>
         </div>
       </div>
@@ -55,6 +54,41 @@ export default {
     addTemplate() {
       this.$router.push({
         path: `/template/add`,
+      });
+    },
+    editTemplate(template) {
+      // this.$router.push({
+      //   path: `/template/edit`,
+      // });
+    },
+    deleteTemplate(template) {
+      this.$confirm('此操作将永久删除模板, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        // 删除模板
+        fetch(`${APIS.TEMPLATE}/${template.id}`, {
+          method: 'DELETE',
+        }).then(res => {
+          this.$message({
+            type: 'success',
+            message: '删除模板成功.',
+          });
+        }).then(async () => {
+          // 更新模板
+          this.templateList = await this.getTemplates();
+        }).catch(e => {
+          this.$message({
+            type: 'warning',
+            message: '删除失败, 请检查网络.',
+          });
+        });
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        });
       });
     },
   },
