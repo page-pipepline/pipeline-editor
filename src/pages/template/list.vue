@@ -46,17 +46,30 @@ export default {
       });
       return ret;
     },
+    async getTemplateId() {
+      const ret = await fetch(`${APIS.ROOT}/templateid`, {
+      });
+      return ret;
+    },
     useTemplate(template) {
       this.$router.push({
         path: `/pipeline?templateId=${template.id}`,
       });
     },
-    addTemplate() {
+    async addTemplate() {
+      const templateId = await this.getTemplateId();
       this.$router.push({
         path: `/template/add`,
+        query: {
+          templateId,
+        }
       });
     },
     editTemplate(template) {
+      this.$message({
+        type: 'warning',
+        message: '即将实现.',
+      });
       // this.$router.push({
       //   path: `/template/edit`,
       // });
