@@ -11,9 +11,18 @@
           <el-form-item label="模板文件">
             <el-button size="small"
               @click="onChooseFile">
-              <i class="el-icon-upload el-icon--right"></i>上传
+              <i class="el-icon-upload el-icon--right"></i>上传模板
             </el-button>
             <span class="template-file-name">{{uploadFileName}}</span>
+          </el-form-item>
+          <el-form-item prop="thumbnail" label="模板封面">
+            <el-button size="small"
+              @click="onChooseImage">
+              <i class="el-icon-picture el-icon--right"></i>上传封面
+            </el-button>
+            <image-frame
+              :src="form.thumbnail">
+            </image-frame>
           </el-form-item>
           <el-form-item label="">
             <el-button type="primary" size="small" @click="onSubmit">添加</el-button>
@@ -26,8 +35,11 @@
       <input style="display:none;"
         ref="tplPageFileInput"
         type="file" name="file"
-        @change="getFile"
-        id="tplPageFileInput"/>
+        @change="getFile"/>
+      <input style="display:none;"
+        ref="tplPageImageInput"
+        type="file" name="file"
+        @change="getImage"/>
     </form>
   </div>
 </template>
@@ -36,16 +48,20 @@
 import { APIS } from 'comp/util/constants';
 import fetch from 'comp/util/fetch';
 import Topbar from 'comp/topbar';
+import ImageFrame from 'comp/image-frame';
 
+const defaultImage = 'https://avatars3.githubusercontent.com/u/38666040';
 export default {
   name: 'template-add',
   components: {
     topbar: Topbar,
+    'image-frame': ImageFrame,
   },
   data() {
     return {
       form: {
         name: '',
+        thumbnail: defaultImage,
       },
       rules: {
         name: [
@@ -55,7 +71,11 @@ export default {
       },
       templateId: '',
       uploadFileName: '',
+      uploadImageName: '',
     };
+  },
+  mounted() {
+    this.templateId = this.$route.query.templateId;
   },
   methods: {
     getFile(event) {
@@ -79,6 +99,7 @@ export default {
       }
 
       const formData = new FormData();
+      formData.append('templateId', this.templateId);
       formData.append('file', file);
 
       fetch(`${APIS.FILE}/upload`, {
@@ -88,7 +109,6 @@ export default {
         },
         body: formData,
       }).then(res => {
-        this.templateId = res.templateId;
         this.uploadFileName = fileName;
         this.$refs.tplPageFileInput.value = null;
       }).catch(e => {
@@ -97,6 +117,49 @@ export default {
           type: 'warning',
         });
         this.$refs.tplPageFileInput.value = null;
+      });
+    },
+    getImage() {
+      const file = event.target.files[0];
+      const fileName = file.name;
+
+      if (!/bmg|gif|jpg|jpeg|pic|png$/i.test(fileName)) {
+        this.$refs.tplPageImageInput.value = null;
+        return this.$message({
+          message: '请选择图片.',
+          type: 'warning',
+        });
+      }
+
+      // 暂不支持上传超过 2M 的图片
+      if (file.size > 1024 * 1024 * 2) {
+        return this.$message({
+          message: '暂不支持上传超过 2M 的图片.',
+          type: 'warning',
+        });
+      }
+
+      const formData = new FormData();
+      formData.append('templateId', this.templateId);
+      formData.append('file', file);
+
+      this.form.thumbnail = URL.createObjectURL(file);
+      fetch(`${APIS.FILE}/upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      }).then(res => {
+        this.uploadImageName = fileName;
+        this.$refs.tplPageImageInput.value = null;
+      }).catch(e => {
+        this.form.thumbnail = defaultImage;
+        this.$message({
+          message: '上传失败, 请检查网络.',
+          type: 'warning',
+        });
+        this.$refs.tplPageImageInput.value = null;
       });
     },
     async onSubmit() {
@@ -110,7 +173,7 @@ export default {
         return;
       }
 
-      if (!this.templateId) {
+      if (!this.uploadFileName) {
         this.$message({
           message: '请先上传模板资源文件.',
           type: 'warning',
@@ -119,7 +182,7 @@ export default {
       }
 
       // 表单校验通过, 并且已经上传了模板
-      if (validate && this.templateId) {
+      if (validate) {
         // TODO 添加模板
         fetch(`${APIS.TEMPLATE}`, {
           method: 'POST',
@@ -127,6 +190,7 @@ export default {
             id: this.templateId,
             name: this.form.name,
             fileName: this.uploadFileName,
+            imageName: this.uploadImageName,
           },
         }).then(res => {
           this.$message({
@@ -148,7 +212,10 @@ export default {
       });
     },
     onChooseFile() {
-      document.getElementById("tplPageFileInput").click();
+      this.$refs.tplPageFileInput.click();
+    },
+    onChooseImage() {
+      this.$refs.tplPageImageInput.click();
     },
     clearFormData() {
       this.form.name = '';
@@ -167,6 +234,7 @@ export default {
 .template-container {
   display: flex;
   justify-content: center;
+  padding-top: 50px;
 }
 
 .template-form {
