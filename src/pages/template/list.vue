@@ -11,7 +11,7 @@
           v-for="(item) in templateList"
           :key="item.id">
           <div class="template-item__thumbnail">
-            <img class="template-item__img" :src="item.thumbnail" />
+            <img class="template-item__img" :src="getThumbnailUrl(item.thumbnail)" />
           </div>
           <div class="template-item__name">{{item.name}}</div>
           <div class="template-item__button-group">
@@ -104,6 +104,12 @@ export default {
         });
       });
     },
+    getThumbnailUrl(url) {
+      if (/^https?:\/\//.test(url)) {
+        return url;
+      }
+      return `http://res.pipeline/${url}`;
+    }
   },
   async mounted() {
     this.templateList = await this.getTemplates();
