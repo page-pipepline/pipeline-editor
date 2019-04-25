@@ -1,6 +1,6 @@
 <template>
   <div class="page-content">
-    <topbar title="添加页面模板"
+    <topbar title="修改页面模板"
       subtitle=""/>
     <div class="template-container">
       <div class="template-form">
@@ -21,11 +21,11 @@
               <i class="el-icon-picture el-icon--right"></i>上传封面
             </el-button>
             <image-frame
-              :src="form.thumbnail">
+              :src="getThumbnailUrl(form.thumbnail)">
             </image-frame>
           </el-form-item>
           <el-form-item label="">
-            <el-button type="primary" size="small" @click="onSubmit">添加</el-button>
+            <el-button type="primary" size="small" @click="onSubmit">更新</el-button>
             <el-button type="" size="small" @click="onBack">返回</el-button>
           </el-form-item>
         </el-form>
@@ -72,13 +72,23 @@ export default {
       templateId: '',
       uploadFileName: '',
       uploadImageName: '',
+      template: null,
     };
   },
-  mounted() {
+  async mounted() {
     this.templateId = this.$route.query.templateId;
-    this.forEdit = /eidt$/.test(this.$route.path);
+
+    this.template = await this.getTemplate(this.templateId);
+
+    this.form.name = this.template.name;
+    this.form.thumbnail = this.template.thumbnail;
   },
   methods: {
+    async getTemplate(templateId) {
+      const ret = await fetch(`${APIS.TEMPLATE}/${templateId}`, {
+      });
+      return ret;
+    },
     getFile(event) {
       const file = event.target.files[0];
       const fileName = file.name;
@@ -182,37 +192,44 @@ export default {
         return;
       }
 
-      if (!this.uploadFileName) {
-        this.$message({
-          message: '请先上传模板资源文件.',
-          type: 'warning',
-        });
-        return;
-      }
-
       // 表单校验通过, 并且已经上传了模板
       if (validate) {
-        fetch(`${APIS.TEMPLATE}`, {
-          method: 'POST',
-          body: {
-            id: this.templateId,
-            name: this.form.name,
-            fileName: this.uploadFileName,
-            imageName: this.uploadImageName,
-          },
+        const body = {};
+        if (this.form.name) {
+          body.name = this.form.name;
+        }
+        if (this.uploadFileName) {
+          body.fileName = this.uploadFileName;
+        }
+        if (this.uploadImageName) {
+          body.imageName = this.uploadImageName;
+        }
+
+        fetch(`${APIS.TEMPLATE}/${this.templateId}`, {
+          method: 'PUT',
+          body,
         }).then(() => {
           this.$message({
-            message: '上传模板成功.',
+            message: '修改模板成功.',
             type: 'success',
           });
           this.clearFormData();
-        }).catch((res) => {
+        }).catch(() => {
           this.$message({
-            message: res.errMsg || '上传失败, 请检查网络.',
+            message: '上传失败, 请检查网络.',
             type: 'warning',
           });
         });
       }
+    },
+    getThumbnailUrl(url) {
+      if (/^https?:\/\//.test(url)) {
+        return url;
+      }
+      if (/^blob?:/.test(url)) {
+        return url;
+      }
+      return `http://res.pipeline/${url}`;
     },
     onBack() {
       this.$router.replace({
@@ -226,8 +243,6 @@ export default {
       this.$refs.tplPageImageInput.click();
     },
     clearFormData() {
-      this.form.name = '';
-      this.form.thumbnail = '';
       this.uploadFileName = '';
       this.uploadImageName = '';
     },

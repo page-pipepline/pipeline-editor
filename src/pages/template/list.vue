@@ -59,31 +59,31 @@ export default {
     async addTemplate() {
       const templateId = await this.getTemplateId();
       this.$router.push({
-        path: `/template/add`,
+        path: '/template/add',
         query: {
           templateId,
-        }
+        },
       });
     },
     editTemplate(template) {
-      this.$message({
-        type: 'warning',
-        message: '即将实现.',
+      const templateId = template.id;
+      this.$router.push({
+        path: '/template/edit',
+        query: {
+          templateId,
+        },
       });
-      // this.$router.push({
-      //   path: `/template/edit`,
-      // });
     },
     deleteTemplate(template) {
       this.$confirm('此操作将永久删除模板, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: 'warning',
       }).then(() => {
         // 删除模板
         fetch(`${APIS.TEMPLATE}/${template.id}`, {
           method: 'DELETE',
-        }).then(res => {
+        }).then(() => {
           this.$message({
             type: 'success',
             message: '删除模板成功.',
@@ -91,7 +91,7 @@ export default {
         }).then(async () => {
           // 更新模板
           this.templateList = await this.getTemplates();
-        }).catch(e => {
+        }).catch(() => {
           this.$message({
             type: 'warning',
             message: '删除失败, 请检查网络.',
@@ -100,7 +100,7 @@ export default {
       }).catch(() => {
         this.$message({
           type: 'info',
-          message: '已取消删除'
+          message: '已取消删除',
         });
       });
     },
@@ -109,7 +109,7 @@ export default {
         return url;
       }
       return `http://res.pipeline/${url}`;
-    }
+    },
   },
   async mounted() {
     this.templateList = await this.getTemplates();

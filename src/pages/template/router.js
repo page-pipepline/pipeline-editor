@@ -6,6 +6,7 @@
 
 import List from './list';
 import Add from './add';
+import Edit from './edit';
 
 export default [
   {
@@ -17,5 +18,10 @@ export default [
     path: '/template/add',
     name: 'Template Add',
     component: Add,
+  },
+  {
+    path: '/template/edit',
+    name: 'Template Edit',
+    component: Edit,
   },
 ];
