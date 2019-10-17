@@ -87,6 +87,17 @@
         @tab-click="onTabClick"
         :value="formName">
         <el-tab-pane
+          name="pageInfo"
+          label="页面信息">
+          <div class="page-info">
+            <el-form ref="pageInfo" :model="pageInfo" :rules="PageInfoRules" label-width="80px">
+              <el-form-item prop="name" label="页面名称">
+                <el-input v-model="pageInfo.name" placeholder="请输入页面名称"></el-input>
+              </el-form-item>
+            </el-form>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane
           name="pageBaseConfig"
           label="页面基本配置">
           <div class="form-json-editor">
@@ -105,6 +116,12 @@
           </div>
         </el-tab-pane>
       </el-tabs>
+    </div>
+    <div class="pipeline__button_group">
+      <el-button size="small"
+        @click="generatePage">
+        <i class="el-icon-document el-icon--right"></i> 生成页面
+      </el-button>
     </div>
   </div>
 </div>
@@ -129,6 +146,7 @@ export default {
       templateId: '',
       template: null,
       pageId: '',
+      pageInfo: {},
       data: {},
       dataSchema: {},
       schemas: {},
@@ -142,6 +160,12 @@ export default {
       previewSrc: '',
       formName: 'pageBaseConfig',
       pageBaseUrl: '',
+      PageInfoRules: {
+        name: [
+          { required: true, message: '请输入页面名称', trigger: 'blur' },
+          { min: 3, max: 32, message: '长度在 3 到 32 个字符', trigger: 'blur' },
+        ],
+      },
     };
   },
   methods: {
@@ -314,6 +338,40 @@ export default {
       }).catch(() => {
       });
     },
+    async generatePage() {
+      this.formName = 'pageInfo';
+
+      const validate = await this.$refs.pageInfo.validate().catch(e => e);
+
+      if (!validate) {
+        this.$message({
+          message: '请先填写页面信息.',
+          type: 'warning',
+        });
+        return;
+      }
+
+      const body = {
+        pageId: this.pageId,
+        templateId: this.templateId,
+        name: this.pageInfo.name,
+      };
+      fetch(`${APIS.PAGE}`, {
+        method: 'POST',
+        body,
+      }).then(() => {
+        this.$message({
+          message: '生成页面成功.',
+          type: 'success',
+        });
+        // TODO 跳转到页面
+      }).catch(() => {
+        this.$message({
+          message: '生成页面失败.',
+          type: 'warning',
+        });
+      });
+    },
   },
   async mounted() {
     this.templateId = this.$route.params.id;
@@ -449,6 +507,17 @@ export default {
     padding: 0 10px;
     overflow: auto;
   }
+
+  &__button_group {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.page-info {
+  height: 457px;
 }
 
 .library-components {
