@@ -46,7 +46,7 @@
     "less": "^3.0.1",
     "less-loader": "^4.1.0",
     "monaco-editor": "^0.12.0",
-    "node-notifier": "^5.1.2",
+    "node-notifier": "^8.0.1",
     "optimize-css-assets-webpack-plugin": "^3.2.0",
     "ora": "^1.2.0",
     "portfinder": "^1.0.13",
