@@ -41,7 +41,7 @@
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^1.1.4",
     "friendly-errors-webpack-plugin": "^1.6.1",
-    "html-webpack-plugin": "^2.30.1",
+    "html-webpack-plugin": "^5.5.0",
     "json5": "^1.0.1",
     "less": "^3.0.1",
     "less-loader": "^4.1.0",
